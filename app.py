@@ -1,50 +1,46 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Depends
+from sqlalchemy.orm import Session
+from database import SessionLocal, engine
+from models import Base
+from crud import get_all_employees
+from pydantic import BaseModel, EmailStr
+from typing import List, Optional
+from datetime import date
+from populate import populate_from_csv
 
+# Инициализация базы данных
+Base.metadata.create_all(bind=engine)
+
+# Инициализация приложения
 app = FastAPI()
 
-employees = [
-    {"tnum": 1488, "fio":"Мымрин Дмитрий Николаевич", "brithday": "19.08.1995", "gender": "male", "phone": "9642142945", "email": "dmymrin1995@gmail.com"}
-]
+# Подключение к базе данных
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-relations = [
-    {'r_id': 1, "tnum": 1488, "fio": "Мымрин Евгений Дмитриевич", "brithday": "19.09.2015", "relation_type": "сын"}
-]
+# populate_from_csv(SessionLocal(), './tables/employees.csv')
 
-def find_employee_by_contact(employees, contact):
-    """
-    Функция для поиска сотрудника по email или номеру телефона.
-    :param employees: список сотрудников
-    :param contact: email или номер телефона для поиска
-    :return: найденный сотрудник или None, если не найден
-    """
-    for employee in employees:
-        if employee["email"] == contact or employee["phone"] == contact:
-            return employee
-    return None
 
-def find_relations_by_employee(relations, tnum):
-    """
-    Функция для поиска родственников сотрудника по табельному номеру (tnum).
-    :param relations: список родственников
-    :param tnum: табельный номер сотрудника
-    :return: список родственников
-    """
-    return [relation for relation in relations if relation["tnum"] == tnum]
+# Pydantic-модель для отображения сотрудников
+class EmployeeOut(BaseModel):
+    tnum: int
+    full_name: str
+    hire_date: date
+    phone_number: str
+    email: EmailStr
+    gender: Optional[str] = None
+    birth_date: Optional[date] = None
+    hobbies: Optional[str] = None
 
-@app.get("/home")
-def read_root():
-    return {"message": "Hello, world!"}
+    class Config:
+        orm_mode = True
 
-@app.get("/search/")
-async def search_employee(contact: str):
-    # Ищем сотрудника по контакту
-    employee = find_employee_by_contact(employees, contact)
-    if not employee:
-        return {"message": "Сотрудник не найден"}
-
-    # Ищем родственников сотрудника
-    employee_relations = find_relations_by_employee(relations, employee["tnum"])
-    return {
-        "employee": employee,
-        "relations": employee_relations
-    }
+# GET маршрут для получения всех сотрудников
+@app.get("/employees/", response_model=List[EmployeeOut])
+def read_employees(db: Session = Depends(get_db)):
+    employees = get_all_employees(db)
+    return employees
