@@ -81,10 +81,6 @@ def search_employee(
     phone_number: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    # Проверяем, указаны ли email или номер телефона
-    if not email and not phone_number:
-        raise HTTPException(status_code=400, detail="Provide either email or phone_number for search")
-
     # Ищем сотрудника
     employee = get_employee_by_contact(db, email=email, phone_number=phone_number)
     if not employee:
