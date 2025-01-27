@@ -6,11 +6,19 @@ from crud import (
     get_all_employees, 
     get_all_relatives,
     get_employee_by_contact,
-    get_relatives_by_employee_id)
+    get_relatives_by_employee_id,
+    get_events,
+    get_card_discounts)
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import date
-from populate import populate_from_csv, populate_relatives_from_csv
+from populate import (
+    populate_from_csv, 
+    populate_relatives_from_csv, 
+    populate_events_from_csv,
+    populate_card_discount_from_csv
+    
+)
 
 # Инициализация базы данных
 Base.metadata.create_all(bind=engine)
@@ -26,12 +34,11 @@ def get_db():
     finally:
         db.close()
 
+
 # populate_from_csv(SessionLocal(), "./tables/employees.csv")
-
-# Заполнение таблицы родственников
 # populate_relatives_from_csv(SessionLocal(), "./tables/relation.csv")
-
-
+# populate_events_from_csv(SessionLocal(), "./tables/events.csv")
+# populate_card_discount_from_csv(SessionLocal(), "./tables/card_discount.csv")
 
 # Pydantic-модель для отображения сотрудников
 class EmployeeOut(BaseModel):
@@ -45,7 +52,7 @@ class EmployeeOut(BaseModel):
     hobbies: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class RelativeOut(BaseModel):
     r_num: int
@@ -56,7 +63,7 @@ class RelativeOut(BaseModel):
     relation_type: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class RelationsSearchResponse(BaseModel):
     message: dict
@@ -123,3 +130,13 @@ def search_employee(
             "relation": relatives_response
         }
     }
+
+@app.get("/events/",)
+def read_events(db: Session = Depends(get_db)):
+    events = get_events(db)
+    return {'message': events}
+
+@app.get('/card_discount/all')
+def read_card_discount(db: Session = Depends(get_db)):
+    discounts = get_card_discounts(db)
+    return {"message": discounts}

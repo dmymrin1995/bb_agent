@@ -1,4 +1,6 @@
-from models import Employee, Relative
+from datetime import date
+
+from models import Employee, Relative, Event, DiscountCard
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
@@ -22,3 +24,10 @@ def get_employee_by_contact(db: Session, email: Optional[str] = None, phone_numb
 # Получение родственников сотрудника
 def get_relatives_by_employee_id(employee_id: int, db: Session):
     return db.query(Relative).filter(Relative.tnum == employee_id).all()
+
+def get_events(db: Session):
+    query = db.query(Event).filter(Event.event_date >= date.today()).all()
+    return query
+
+def get_card_discounts(db: Session):
+    return db.query(DiscountCard).limit(100).all()

@@ -1,6 +1,6 @@
 import pandas as pd
 from sqlalchemy.orm import Session
-from models import Employee, Relative
+from models import Employee, Relative, Event, DiscountCard
 
 def populate_from_csv(db: Session, file_path: str):
     df = pd.read_csv(file_path)
@@ -34,4 +34,33 @@ def populate_relatives_from_csv(db: Session, file_path: str):
             relation_type=row['relation_type'],
         )
         db.add(relative)
+    db.commit()
+
+def populate_events_from_csv(db: Session, file_path: str):
+    df = pd.read_csv(file_path)
+
+    for _, row in df.iterrows():
+        event = Event(
+            e_num=row['e_num'],
+            event_date=pd.to_datetime(row['event_date']).date() if not pd.isna(row['event_date']) else None,
+            event_name=row['event_name'],
+            age_limit=row['age_limit'],
+            price=row['price'].replace(',', '.'),
+            discount=row['discount'].replace(',', '.'),
+        )
+        db.add(event)
+    db.commit()
+
+def populate_card_discount_from_csv(db: Session, file_path: str):
+    df = pd.read_csv(file_path)
+
+    for _, row in df.iterrows():
+        event = DiscountCard(
+            p_num=row['p_num'],
+            partner=row['partner'],
+            discription=row['discription'],
+            card_discount=row['card_discount'],
+
+        )
+        db.add(event)
     db.commit()

@@ -4,6 +4,7 @@ from sqlalchemy import (
     String, 
     Date, 
     Text,
+    Float,
     ForeignKey
 )
 from sqlalchemy.orm import relationship
@@ -36,3 +37,22 @@ class Relative(Base):
 
     # Связь с сотрудником
     employee = relationship("Employee", back_populates="relatives")
+
+class Event(Base):
+    __tablename__ = "events"
+
+    e_num = Column(Integer, primary_key=True, index=True)
+    event_date = Column(Date, nullable=False)  # Дата проведения
+    event_name = Column(String, nullable=False)  # Название мероприятия
+    age_limit = Column(String, nullable=False)  # Ограничение по возрасту
+    price = Column(Float, nullable=False)  # Цена
+    discount = Column(Float, nullable=True)  # Скидка
+
+class DiscountCard(Base):
+
+    __tablename__ = "card_discount"
+
+    p_num = Column(Integer, primary_key=True, index=True)
+    partner = Column(String, nullable=False)
+    discription = Column(String, nullable=False)
+    card_discount = Column(String, nullable=False)
