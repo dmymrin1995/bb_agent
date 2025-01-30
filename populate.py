@@ -13,7 +13,7 @@ def populate_from_csv(db: Session, file_path: str):
             full_name=row['full_name'],
             hire_date=pd.to_datetime(row['hire_date']).date(),
             phone_number=row['phone_number'],
-            email=row['email'],
+            email=row['email'].strip(),
             gender=row.get('gender', None),
             birth_date=pd.to_datetime(row['birth_date']).date() if not pd.isna(row['birth_date']) else None,
             hobbies=hobbies,
